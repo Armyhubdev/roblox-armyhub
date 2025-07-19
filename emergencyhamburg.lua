@@ -1,54 +1,69 @@
--- Army Hub | Emergency Hamburg GUI
-local S = Instance.new("ScreenGui")
-local F = Instance.new("Frame")
-local T = Instance.new("TextLabel")
-local C = Instance.new("TextButton")
-local D = Instance.new("TextButton")
-local Tabs = {"Aimbot","ESP","Teleport","Vehicle Mods","Player Mods","Misc","Credits"}
-local Scripts = {
-  Aimbot = "https://raw.githubusercontent.com/Armyhubdev/roblox-armyhub/main/aimbot.lua",
-  ESP = "https://raw.githubusercontent.com/Armyhubdev/roblox-armyhub/main/esp.lua",
-  Teleport = "https://raw.githubusercontent.com/Armyhubdev/roblox-armyhub/main/teleport.lua",
-  ["Vehicle Mods"] = "https://raw.githubusercontent.com/Armyhubdev/roblox-armyhub/main/vehiclemods.lua",
-  ["Player Mods"] = "https://raw.githubusercontent.com/Armyhubdev/roblox-armyhub/main/playermods.lua",
-  Misc = "https://raw.githubusercontent.com/Armyhubdev/roblox-armyhub/main/misc.lua",
-  Credits = "https://raw.githubusercontent.com/Armyhubdev/roblox-armyhub/main/credits.lua"
-}
+-- Simple Army Hub GUI with working tabs and buttons inside
+local ScreenGui = Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
+ScreenGui.Name = "ArmyHub"
 
--- GUI
-S.Name, S.Parent = "ArmyHub", game.Players.LocalPlayer:WaitForChild("PlayerGui")
-F.Name, F.Parent, F.BackgroundColor3 = "Main", S, Color3.fromRGB(25,25,25)
-F.Position, F.Size = UDim2.new(0.3,0,0.3,0), UDim2.new(0,420,0,280)
-F.Active, F.Draggable = true, false
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 500, 0, 300)
+MainFrame.Position = UDim2.new(0.25, 0, 0.2, 0)
+MainFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+MainFrame.BorderSizePixel = 0
 
 -- Title
-T.Parent = F
-T.Size, T.Text, T.Font, T.TextSize = UDim2.new(1,0,0,30),"Army Hub | Emergency Hamburg",Enum.Font.GothamBold,22
-T.TextColor3, T.BackgroundTransparency = Color3.new(1,1,1),1
+local Title = Instance.new("TextLabel", MainFrame)
+Title.Text = "Army Hub | Emergency Hamburg"
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15)
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 20
 
--- Close Button
-C.Parent = F
-C.Size, C.Position, C.Text, C.Font, C.TextSize = UDim2.new(0,30,0,30), UDim2.new(1,-30,0,0), "-", Enum.Font.GothamBold,24
-C.TextColor3, C.BackgroundTransparency = Color3.new(1,0,0),1
-C.MouseButton1Click:Connect(function() F.Visible = false end)
+-- Tabs
+local Tabs = {
+    "Aimbot", "ESP", "Teleport", "Vehicle", "Misc"
+}
 
--- Drag bar
-D.Parent, D.Size, D.Position = F, UDim2.new(1,0,0,20), UDim2.new(0,0,1,-20)
-D.Text, D.Font, D.TextSize = "Click to drag", Enum.Font.Gotham,14
-D.TextColor3, D.BackgroundColor3, D.Active, D.Draggable = Color3.fromRGB(200,200,200), Color3.fromRGB(40,40,40), true, true
+local Frames = {}
 
--- Tabs Buttons
-local function makeTab(name,i)
-  local btn = Instance.new("TextButton")
-  btn.Parent = F
-  btn.Size, btn.Position = UDim2.new(0,100,0,28), UDim2.new(0.02+0.14*(i-1),0,0,35)
-  btn.Text, btn.Font, btn.TextSize = name, Enum.Font.GothamSemibold,16
-  btn.TextColor3, btn.BackgroundColor3 = Color3.new(1,1,1), Color3.fromRGB(35,35,35)
-  btn.MouseButton1Click:Connect(function()
-    local url = Scripts[name]
-    if url then loadstring(game:HttpGet(url))() end
-  end)
+for i, tabName in ipairs(Tabs) do
+    local TabBtn = Instance.new("TextButton", MainFrame)
+    TabBtn.Size = UDim2.new(0, 90, 0, 30)
+    TabBtn.Position = UDim2.new(0, (i - 1) * 95, 0, 50)
+    TabBtn.Text = tabName
+    TabBtn.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    TabBtn.TextColor3 = Color3.new(1, 1, 1)
+    TabBtn.Font = Enum.Font.Gotham
+    TabBtn.TextSize = 14
+
+    -- Frame for each tab
+    local TabFrame = Instance.new("Frame", MainFrame)
+    TabFrame.Size = UDim2.new(1, -20, 1, -90)
+    TabFrame.Position = UDim2.new(0, 10, 0, 90)
+    TabFrame.BackgroundTransparency = 1
+    TabFrame.Visible = false
+
+    -- Add dummy content inside each
+    local Button = Instance.new("TextButton", TabFrame)
+    Button.Size = UDim2.new(0, 150, 0, 40)
+    Button.Position = UDim2.new(0, 10, 0, 10)
+    Button.Text = "Activate " .. tabName
+    Button.BackgroundColor3 = Color3.fromRGB(0, 160, 100)
+    Button.TextColor3 = Color3.new(1, 1, 1)
+    Button.Font = Enum.Font.GothamBold
+    Button.TextSize = 16
+
+    -- Store frame
+    Frames[tabName] = TabFrame
+
+    -- Tab click handler
+    TabBtn.MouseButton1Click:Connect(function()
+        -- Hide all other frames
+        for _, frame in pairs(Frames) do
+            frame.Visible = false
+        end
+        -- Show current
+        TabFrame.Visible = true
+    end)
 end
-for i,name in ipairs(Tabs) do makeTab(name,i) end
 
-print("✅ Army Hub loaded!")
+-- Show first tab by default
+Frames["Aimbot"].Visible = true
