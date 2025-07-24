@@ -1,209 +1,240 @@
--- Army Hub: Emergency Hamburg GUI (Offline Full Version)
--- UI Library Setup
+-- Army Hub GUI (Emergency Hamburg)
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+-- Create main GUI
 local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-local MainFrame = Instance.new("Frame")
-local Title = Instance.new("TextLabel")
-local CloseButton = Instance.new("TextButton")
-local TabList = Instance.new("Frame")
+ScreenGui.Name = "ArmyHub"
 
--- Draggable Setup
-MainFrame.Draggable = true
-MainFrame.Active = true
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 500, 0, 350)
+Main.Position = UDim2.new(0.3, 0, 0.2, 0)
+Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Main.BorderSizePixel = 0
+Main.Active = true
+Main.Draggable = true
 
--- Styling
-ScreenGui.Name = "ArmyHubGUI"
-MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 600, 0, 400)
-MainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-MainFrame.Parent = ScreenGui
-
-Title.Name = "Title"
-Title.Size = UDim2.new(1, -40, 0, 40)
-Title.Position = UDim2.new(0, 0, 0, 0)
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 Title.Text = "Army Hub"
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 28
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-Title.Parent = MainFrame
+Title.TextSize = 24
+Title.TextColor3 = Color3.new(1, 1, 1)
 
-CloseButton.Name = "CloseButton"
-CloseButton.Size = UDim2.new(0, 40, 0, 40)
-CloseButton.Position = UDim2.new(1, -40, 0, 0)
-CloseButton.Text = "-"
-CloseButton.Font = Enum.Font.GothamBold
-CloseButton.TextSize = 24
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-CloseButton.Parent = MainFrame
-CloseButton.MouseButton1Click:Connect(function()
-	MainFrame.Visible = false
-end)
+local Close = Instance.new("TextButton", Main)
+Close.Size = UDim2.new(0, 30, 0, 30)
+Close.Position = UDim2.new(1, -35, 0, 5)
+Close.Text = "-"
+Close.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+Close.MouseButton1Click:Connect(function() Main.Visible = false end)
 
-TabList.Name = "TabList"
-TabList.Size = UDim2.new(0, 150, 1, -40)
-TabList.Position = UDim2.new(0, 0, 0, 40)
-TabList.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-TabList.Parent = MainFrame
+local Tabs = Instance.new("Frame", Main)
+Tabs.Size = UDim2.new(0, 120, 1, -40)
+Tabs.Position = UDim2.new(0, 0, 0, 40)
+Tabs.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 
--- Create tab buttons and section frames
-local sections = {
-	"Aimbot",
-	"ESP",
-	"Teleport",
-	"Vehicle Mods",
-	"Player Mods",
-	"Misc",
-	"Credits"
-}
+local Content = Instance.new("Frame", Main)
+Content.Size = UDim2.new(1, -120, 1, -40)
+Content.Position = UDim2.new(0, 120, 0, 40)
+Content.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 
-local tabButtons = {}
-local sectionFrames = {}
-
-for i, name in ipairs(sections) do
-	local btn = Instance.new("TextButton")
-	btn.Name = name .. "Tab"
-	btn.Size = UDim2.new(1, 0, 0, 40)
-	btn.Position = UDim2.new(0, 0, 0, (i - 1) * 40)
-	btn.Text = name
-	btn.Font = Enum.Font.Gotham
-	btn.TextSize = 18
-	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-	btn.Parent = TabList
-	tabButtons[name] = btn
-
-	local frame = Instance.new("Frame")
-	frame.Name = name .. "Frame"
-	frame.Size = UDim2.new(1, -150, 1, -40)
-	frame.Position = UDim2.new(0, 150, 0, 40)
-	frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-	frame.Visible = false
-	frame.Parent = MainFrame
-	sectionFrames[name] = frame
-
-	btn.MouseButton1Click:Connect(function()
-		for _, f in pairs(sectionFrames) do f.Visible = false end
-		frame.Visible = true
-	end)
+local function createTab(name, callback)
+	local button = Instance.new("TextButton", Tabs)
+	button.Size = UDim2.new(1, 0, 0, 35)
+	button.Text = name
+	button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	button.TextColor3 = Color3.new(1, 1, 1)
+	button.MouseButton1Click:Connect(callback)
 end
 
--- Aimbot Logic
-local aimbotEnabled = false
-local function getClosest()
-	local players = game:GetService("Players")
-	local closest, distance = nil, math.huge
-	for _, plr in pairs(players:GetPlayers()) do
-		if plr ~= players.LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
-			local screenPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(plr.Character.Head.Position)
-			if onScreen then
-				local dist = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
-				if dist < distance then
-					closest = plr
-					distance = dist
+local function clearContent()
+	for _, v in pairs(Content:GetChildren()) do
+		if v:IsA("GuiObject") then v:Destroy() end
+	end
+end
+
+-- Tab: Aimbot
+createTab("Aimbot", function()
+	clearContent()
+	local btn = Instance.new("TextButton", Content)
+	btn.Size = UDim2.new(0, 200, 0, 40)
+	btn.Position = UDim2.new(0, 20, 0, 20)
+	btn.Text = "Enable Aimbot"
+	btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	btn.TextColor3 = Color3.new(1,1,1)
+
+	local enabled = false
+	local RunService = game:GetService("RunService")
+
+	local function getClosestPlayer()
+		local closest, dist = nil, math.huge
+		for _, player in pairs(Players:GetPlayers()) do
+			if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+				local pos = player.Character.Head.Position
+				local screenPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(pos)
+				local mag = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(screenPos.X, screenPos.Y)).magnitude
+				if onScreen and mag < dist then
+					dist = mag
+					closest = player
 				end
 			end
 		end
+		return closest
 	end
-	return closest
-end
 
-local RunService = game:GetService("RunService")
-local mouse = game.Players.LocalPlayer:GetMouse()
-RunService.RenderStepped:Connect(function()
-	if aimbotEnabled then
-		local target = getClosest()
-		if target and target.Character and target.Character:FindFirstChild("Head") then
-			workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, target.Character.Head.Position)
-		end
-	end
-end)
+	btn.MouseButton1Click:Connect(function()
+		enabled = not enabled
+		btn.Text = enabled and "Aimbot ON" or "Enable Aimbot"
+	end)
 
-local aimbotBtn = Instance.new("TextButton", sectionFrames["Aimbot"])
-aimbotBtn.Size = UDim2.new(0, 200, 0, 50)
-aimbotBtn.Position = UDim2.new(0, 20, 0, 20)
-aimbotBtn.Text = "Toggle Aimbot"
-aimbotBtn.Font = Enum.Font.Gotham
-aimbotBtn.TextSize = 20
-aimbotBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-aimbotBtn.MouseButton1Click:Connect(function()
-	aimbotEnabled = not aimbotEnabled
-	aimbotBtn.Text = aimbotEnabled and "Aimbot ON" or "Aimbot OFF"
-end)
-
--- ESP Logic
-local espEnabled = false
-local drawings = {}
-
-local function clearESP()
-	for _, drawing in pairs(drawings) do
-		drawing:Remove()
-	end
-	table.clear(drawings)
-end
-
-RunService.RenderStepped:Connect(function()
-	if not espEnabled then clearESP() return end
-	clearESP()
-	for _, plr in pairs(game:GetService("Players"):GetPlayers()) do
-		if plr ~= game.Players.LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
-			local pos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(plr.Character.Head.Position)
-			if onScreen then
-				local nameTag = Drawing.new("Text")
-				nameTag.Text = plr.Name
-				nameTag.Position = Vector2.new(pos.X, pos.Y)
-				nameTag.Size = 16
-				nameTag.Color = Color3.fromRGB(255, 0, 0)
-				nameTag.Outline = true
-				nameTag.Center = true
-				nameTag.Visible = true
-				table.insert(drawings, nameTag)
+	RunService.RenderStepped:Connect(function()
+		if enabled then
+			local target = getClosestPlayer()
+			if target and target.Character:FindFirstChild("Head") then
+				workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, target.Character.Head.Position)
 			end
 		end
+	end)
+end)
+
+-- Tab: ESP
+createTab("ESP", function()
+	clearContent()
+	local btn = Instance.new("TextButton", Content)
+	btn.Size = UDim2.new(0, 200, 0, 40)
+	btn.Position = UDim2.new(0, 20, 0, 20)
+	btn.Text = "Enable ESP"
+	btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	btn.TextColor3 = Color3.new(1,1,1)
+
+	local enabled = false
+	local drawings = {}
+
+	local function createESP(player)
+		local box = Drawing.new("Text")
+		box.Color = Color3.new(1, 1, 1)
+		box.Size = 16
+		box.Center = true
+		box.Outline = true
+		box.Visible = false
+		drawings[player] = box
+	end
+
+	local function removeESP(player)
+		if drawings[player] then
+			drawings[player]:Remove()
+			drawings[player] = nil
+		end
+	end
+
+	Players.PlayerAdded:Connect(createESP)
+	Players.PlayerRemoving:Connect(removeESP)
+	for _, p in pairs(Players:GetPlayers()) do if p ~= LocalPlayer then createESP(p) end end
+
+	game:GetService("RunService").RenderStepped:Connect(function()
+		if enabled then
+			for player, text in pairs(drawings) do
+				if player.Character and player.Character:FindFirstChild("Head") then
+					local head = player.Character.Head.Position
+					local screenPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(head)
+					if onScreen then
+						text.Position = Vector2.new(screenPos.X, screenPos.Y)
+						text.Text = player.Name
+						text.Visible = true
+					else
+						text.Visible = false
+					end
+				end
+			end
+		else
+			for _, text in pairs(drawings) do
+				text.Visible = false
+			end
+		end
+	end)
+
+	btn.MouseButton1Click:Connect(function()
+		enabled = not enabled
+		btn.Text = enabled and "ESP ON" or "Enable ESP"
+	end)
+end)
+
+-- Tab: Teleport
+createTab("Teleport", function()
+	clearContent()
+	local places = {
+		{"To Police", Vector3.new(73, 5, -120)},
+		{"To Hospital", Vector3.new(210, 5, -90)},
+		{"To Bank", Vector3.new(160, 5, 75)},
+	}
+	for i, info in pairs(places) do
+		local btn = Instance.new("TextButton", Content)
+		btn.Size = UDim2.new(0, 200, 0, 30)
+		btn.Position = UDim2.new(0, 20, 0, i * 35)
+		btn.Text = info[1]
+		btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+		btn.TextColor3 = Color3.new(1, 1, 1)
+		btn.MouseButton1Click:Connect(function()
+			LocalPlayer.Character:MoveTo(info[2])
+		end)
 	end
 end)
 
-local espBtn = Instance.new("TextButton", sectionFrames["ESP"])
-espBtn.Size = UDim2.new(0, 200, 0, 50)
-espBtn.Position = UDim2.new(0, 20, 0, 20)
-espBtn.Text = "Toggle ESP"
-espBtn.Font = Enum.Font.Gotham
-espBtn.TextSize = 20
-espBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
-espBtn.MouseButton1Click:Connect(function()
-	espEnabled = not espEnabled
-	espBtn.Text = espEnabled and "ESP ON" or "ESP OFF"
+-- Tab: Vehicle Mods
+createTab("Vehicle Mods", function()
+	clearContent()
+	local btn = Instance.new("TextButton", Content)
+	btn.Size = UDim2.new(0, 200, 0, 40)
+	btn.Position = UDim2.new(0, 20, 0, 20)
+	btn.Text = "Boost Car Speed"
+	btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	btn.TextColor3 = Color3.new(1,1,1)
+
+	btn.MouseButton1Click:Connect(function()
+		local seat = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildWhichIsA("VehicleSeat", true)
+		if seat then
+			seat.MaxSpeed = 500
+			seat.Torque = 500000
+		end
+	end)
 end)
 
--- Teleport Tab
-local tpFrame = sectionFrames["Teleport"]
-local tpLocations = {
-	{ name = "Police Station", pos = Vector3.new(123, 10, 456) },
-	{ name = "Bank", pos = Vector3.new(200, 10, -150) },
-	{ name = "Hospital", pos = Vector3.new(-320, 10, 210) },
-}
-for i, loc in ipairs(tpLocations) do
-	local btn = Instance.new("TextButton", tpFrame)
-	btn.Size = UDim2.new(0, 200, 0, 40)
-	btn.Position = UDim2.new(0, 20, 0, (i-1)*50 + 20)
-	btn.Text = "Teleport: " .. loc.name
-	btn.Font = Enum.Font.Gotham
-	btn.TextSize = 18
-	btn.BackgroundColor3 = Color3.fromRGB(80, 80, 200)
-	btn.MouseButton1Click:Connect(function()
-		game.Players.LocalPlayer.Character:MoveTo(loc.pos)
-	end)
-end
+-- Tab: Misc
+createTab("Misc", function()
+	clearContent()
 
--- Other sections: placeholder
-for _, name in ipairs({ "Vehicle Mods", "Player Mods", "Misc", "Credits" }) do
-	local label = Instance.new("TextLabel", sectionFrames[name])
-	label.Size = UDim2.new(1, -40, 0, 30)
-	label.Position = UDim2.new(0, 20, 0, 20)
-	label.Text = name .. " features coming soon..."
-	label.Font = Enum.Font.Gotham
-	label.TextSize = 18
-	label.TextColor3 = Color3.fromRGB(200, 200, 200)
-	label.BackgroundTransparency = 1
-end
+	local noclip = false
+	local btn = Instance.new("TextButton", Content)
+	btn.Size = UDim2.new(0, 200, 0, 40)
+	btn.Position = UDim2.new(0, 20, 0, 20)
+	btn.Text = "Toggle NoClip"
+	btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	btn.TextColor3 = Color3.new(1,1,1)
+
+	game:GetService("RunService").Stepped:Connect(function()
+		if noclip and LocalPlayer.Character then
+			for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+				if part:IsA("BasePart") then
+					part.CanCollide = false
+				end
+			end
+		end
+	end)
+
+	btn.MouseButton1Click:Connect(function()
+		noclip = not noclip
+		btn.Text = noclip and "NoClip ON" or "Toggle NoClip"
+	end)
+end)
+
+-- Tab: Credits
+createTab("Credits", function()
+	clearContent()
+	local text = Instance.new("TextLabel", Content)
+	text.Size = UDim2.new(1, -40, 0, 40)
+	text.Position = UDim2.new(0, 20, 0, 20)
+	text.Text = "Made by Army Hub Dev 💣"
+	text.TextColor3 = Color3.new(1, 1, 1)
+	text.BackgroundTransparency = 1
+end)
